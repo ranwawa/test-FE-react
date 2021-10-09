@@ -9,3 +9,14 @@ describe('isMobile', () => {
 		expect(isMobile('1333333')).toBe(false);
 	})
 });
+
+
+describe('isPwd', () => {
+	test('123456应该返回true', () => {
+		expect(isPwd(123456)).toBeTruthy();
+	});
+
+	test('123应该返回false', () => {
+		expect(isPwd('123')).toBeFalsy();
+	})
+});
