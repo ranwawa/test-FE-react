@@ -1,4 +1,4 @@
-import {isMobile, isPwd } from '..';
+import {isMobile, isPwd, REG_MOBILE, REG_PWD } from '..';
 
 describe('isMobile', () => {
 	test('13333333333应该返回true', () => {
@@ -20,3 +20,13 @@ describe('isPwd', () => {
 		expect(isPwd('123')).toBeFalsy();
 	})
 });
+
+describe('snapshot', () => {
+	test('手机号码的正则表达式', () => {
+		expect(REG_MOBILE).toMatchSnapshot();
+	})
+
+	test('密码的正则表达式', () => {
+		expect(REG_PWD).toMatchSnapshot();
+	})
+})

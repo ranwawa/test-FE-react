@@ -1,0 +1,5 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`snapshot 密码的正则表达式 1`] = `/\\.\\{6\\}/`;
+
+exports[`snapshot 手机号码的正则表达式 1`] = `/1\\[3-8\\]\\\\d\\{9,9\\}/`;

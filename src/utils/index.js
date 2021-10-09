@@ -1,4 +1,4 @@
-export const REG_MOBILE = /1\d{10,10}/;
+export const REG_MOBILE = /1[3-8]\d{9,9}/;
 export const REG_PWD = /.{6}/;
 
 export const isMobile = function (mobile) {
