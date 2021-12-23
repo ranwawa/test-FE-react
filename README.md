@@ -1,33 +1,23 @@
 
 # 前端测试
 
-面试官: 请问在一个多人长期维护的项目中,你是如何保证代码质量的?
-
-通过一个登录页面来介绍前端项目(react)涉及到的单元测试,集成测试以及端到端测试.介绍相关测试工具以及最佳实践.
+请问在一个多人长期维护的项目中,你是如何保证代码质量的?
 
 - [前端测试](#前端测试)
-  - [准备工作](#准备工作)
     - [产品需求](#产品需求)
     - [技术方案](#技术方案)
     - [开发准备](#开发准备)
     - [开发思路](#开发思路)
-  - [单元测试](#单元测试)
-    - [测试函数](#测试函数)
-      - [业务代码](#业务代码)
-      - [测试代码 isMobile](#测试代码-ismobile)
-      - [Tips](#tips)
-      - [测试代码 isPwd](#测试代码-ispwd)
-    - [测试快照](#测试快照)
-    - [测试组件](#测试组件)
-    - [测试接口](#测试接口)
-  - [集成测试](#集成测试)
-    - [测试路由跳转](#测试路由跳转)
-    - [测试用户交互](#测试用户交互)
-    - [测试登录逻辑](#测试登录逻辑)
-  - [端到端测试](#端到端测试)
-    - [模拟用户操作](#模拟用户操作)
-
-## 准备工作
+  - [1. 单元测试](#1-单元测试)
+    - [1.1 测试一个函数](#11-测试一个函数)
+    - [1.2 测试快照](#12-测试快照)
+    - [1.3 测试组件](#13-测试组件)
+    - [1.4 测试用户交互](#14-测试用户交互)
+  - [2. 集成测试](#2-集成测试)
+    - [2.1 测试接口](#21-测试接口)
+    - [2.2 测试路由跳转](#22-测试路由跳转)
+    - [2.3 测试自动登录](#23-测试自动登录)
+  - [3. 端到端测试](#3-端到端测试)
 
 ### 产品需求
 
@@ -56,295 +46,749 @@ npm install
 5. 编写登录页面
 6. 编写登录逻辑
 
-## 单元测试
+## 1. 单元测试
 
 通常只针对自己开发的一个小功能进行测试,不需要和其他插件/模块/函数进行交互.一般只需要一个断言即可完成测试
 
-### 测试函数
+### 1.1 测试一个函数
 
-#### 业务代码
+#### 1.1.1 编写业务代码
 
-通过正则来验手机号和密码
-
-这两个验证函数可能会在找回密码,创建帐号等地方用到
-
-所以抽离到`utils/index.js`文件作为公共函数
+通过正则来验手机号这个函数在找回密码,创建帐号等地方会用到,所以抽离到`utils/index.js`文件作为公共函数
 
 ```javascript
-// utils/index.js
+// src/utils/index.js
 
-const REG_MOBILE = /1\d{10,10}/;
-const REG_PWD = /.{6}/;
+export const REG_MOBILE = /1[3-8]\d{9,9}/;
 
+/**
+ * 验证是否手机号
+ * @param {string} mobile - 手机号码 
+ * @returns {boolean}
+ */
 export const isMobile = function (mobile) {
   return REG_MOBILE.test(mobile);
 }
-
-export const isPwd = function (pwd) {
-  eturn REG_MOBILE.test(pwd);
-}
 ```
 
-#### 测试代码 isMobile
+#### 1.1.2 编写测试代码
 
-1. 在业务代码同级目录新增`__test__`目录
-2. 在里面新增一个以`test.js`结尾的测试文件.
-
-3. 然后编写`isMobile`的测试用例,我们需要测试这个函数
-   - 输入正确的手机号码,要返回true
-   - 输入错误的手机号码要返回false
-4. 运行测试命令,检查测试用例是否通过
+1. 创建测试目录`utils/__test__`
+2. 创建测试文件`utils/__test__/index.test.js`
+3. 新增测试分组`describe('验证手机号码函数相关测试', ...`
+4. 编写测试用例
+   1. 新增测试用例`test('输入正确的手机号码', ...`
+   2. 运行函数
+   3. 断言函数结果`expect(...).to...`
+5. 运行测试命令`npm run test`,检查测试结果
 
 ```javascript
-// utils/__test__/index.function.test.js
+// src/utils/__tests__/index.test.js
 
 import {isMobile } from '..';
 
-describe('isMobile', () => {
-  test('13333333333应该返回true', () => {
-    expect(isMobile('13333333333')).toBe(true);
-  });
+describe('验证手机号码函数相关测试', () => {
+ test('输入正确的手机号码:13333333333,应该返回true', () => {
+  const res = isMobile('13333333333')
+  expect(res).toBe(true);
+ });
 
-  test('1333333应该返回false', () => {
-    expect(isMobile('1333333')).toBe(false);
-  })
+ test('输入错误的手机号码:1333333,应该返回false', () => {
+  const res = isMobile('1333333')
+  expect(res).toBe(false);
+ })
 });
 ```
 
-在终端运行`npm run test`即可看到测试结果
+#### 1.1.3 测试结果
 
 ```bash
- PASS  src/utils/__test__/index.function.test.js
-  isMobile
-    ✓ 13333333333应该返回true (1 ms)
-    ✓ 1333333应该返回false (1 ms)
-
-Test Suites: 1 passed, 1 total
-Tests:       2 passed, 2 total
-Snapshots:   0 total
-Time:        0.436 s, estimated 1 s
-Ran all test suites.
-
-Watch Usage: Press w to show more.
+PASS  src/utils/__tests__/index.test.js
+  验证手机号码函数相关测试
+    ✓ 输入正确的手机号码:13333333333,应该返回true (2 ms)
+    ✓ 输入错误的手机号码:1333333,应该返回false
 ```
 
-#### Tips
+#### 1.1.4 试一试
 
-> 1. 为什么要在\__test__目录下以.test.js为后缀来命名测试文件?
->    - 这是jest的默认行为,也可自定义jest配置来修改.详情: <https://jestjs.io/docs/configuration#projects-arraystring--projectconfig>
-> 2. describe/test/expect这些全局函数是哪儿来的,有什么作用?
->    - 是jest提供的用于测试的全局函数,这3个是固定的写法
->    - 主要是toBe/toXXX会有一些差异.详情: <https://jestjs.io/docs/using-matchers>
-> 3. 为什么npm run test就会运行测试用例?
->    - Create-react-app项目默认和jest集成,相当于是执行了jest命令.详情: <https://create-react-app.dev/docs/running-tests/>
+- 将第一个测试用例的验证函数`.toBe(true)`修改成`.toBe(false)`
+- 将第2个测试用例的验证函数`.toBe(false)`修改成`.toBeFalsy()`
 
-#### 测试代码 isPwd
+### 1.2 测试快照
+
+针对正则的常量,我们可以保存一个快照.当修改常量时,会进行提示,以避免不小心被修改错了
+
+#### 1.2.1 编写测试代码
+
+1. 定位到验证手机号码的测试分组
+2. 新增测试用例
+3. 运行测试命令
 
 ```diff
-// utils/__test__/index.function.test.js
+// src/utils/__tests__/index.test.js
 
-- import {isMobile } from '..';
-+ import {isMobile, isPwd } from '..'
++ import {isMobile, REG_MOBILE } from '..';
 
-+ describe('isPwd', () => {
-+  test('123456应该返回true', () => {
-+   expect(isPwd('123456')).toBeTruthy();
+describe('验证手机号码函数相关测试', () => {
+ test('输入正确的手机号码:13333333333,应该返回true', () => {
+  const res = isMobile('13333333333')
+  expect(res).toBe(true);
+ });
+
+ test('输入错误的手机号码:1333333,应该返回false', () => {
+  const res = isMobile('1333333')
+  expect(res).toBe(false);
+ })
+
++ test('手机号码的正则表达式应该是11位数字', () => {
++  expect(REG_MOBILE).toMatchSnapshot();
++ })
+});
+
+```
+
+#### 1.2.2 测试结果
+
+```bash
+PASS  src/utils/__tests__/index.test.js
+  验证手机号码函数相关测试
+    ✓ 输入正确的手机号码:13333333333,应该返回true (3 ms)
+    ✓ 输入错误的手机号码:1333333,应该返回false (1 ms)
+    ✓ 手机号码的正则表达式应该是11位数字 (2 ms)
+
+ › 1 snapshot written.
+Snapshot Summary
+ › 1 snapshot written from 1 test suite.
+```
+
+#### 1.2.3 试一试
+
+- 看看`src/utils/__tests__/__snapshots__`
+- 将断言函数`expect(REG_MOBILE)`修改成`expect('1[0-9]')`
+
+### 1.3 测试组件
+
+#### 1.3.1 编写业务代码
+
+手机输入框组件在注册,修改手机号时也会用到,所以抽离成一个公共组件
+
+```jsx
+// src/components/Mobile.js
+
+import { Form, Input } from 'antd';
+
+const Mobile = () => {
+  return (
+    <Form.Item
+      label='用户名'
+      name='username'
+    >
+      <Input
+        placeholder='请输入手机号'
+      />
+    </Form.Item>
+  );
+};
+
+export default Mobile;
+```
+
+#### 1.3.2 编写测试代码
+
+1. 引入第3方测试库
+2. 模拟全局变量
+3. 编写测试用例
+   1. 新增测试分组和用例
+   2. 渲染组件
+   3. 断言组件渲染结果
+4. 运行测试命令
+
+```javascript
+// src/components/__tests__/Mobile.test.js
+
+import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { Form } from 'antd';
+import Mobile from '../Mobile';
+
+Object.defineProperty(window, 'matchMedia', {
+  value: () => ({
+    addListener: () => {},
+    removeListener: () => {},
+  }),
+});
+
+describe('手机号输入框相关测试', () => {
+  test('组件渲染成功后,界面上要显示用户名及请输入手机号', () => {
+    render(
+      <Form>
+        <Mobile></Mobile>
+      </Form>
+    );
+
+    expect(screen.getByText('用户名')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('请输入手机号')).toBeInTheDocument();
+  });
+});
+```
+
+#### 1.3.3 测试结果
+
+```bash
+PASS  src/components/__tests__/Mobile.test.js
+  手机号输入框相关测试
+    ✓ 组件渲染成功后,界面上要显示用户名及请输入手机号码 (58 ms)
+```
+
+#### 1.3.4 试一试
+
+- 删除测试库'import '@testing-library/jest-dom';'
+- 删除全局属性声明`Object.defineProperty(window`
+- 将断言内容`expect(screen.getByText('用户名'))`修改成`expect(screen.getByText('密码'))`
+
+### 1.4 测试用户交互
+
+在手机号组件上,添加用户操作相关的逻辑,然后验证用户的操作是否会产生符合期望的结果
+
+#### 1.4.1 编写业务代码
+
+为方便测试,先把state管理写到组件里面,后面再通过props传递
+
+```diff
+// src/components/Mobile.js
+
+import { Form, Input } from 'antd';
++ import { useState } from 'react';
++ import { isMobile } from '../utils';
+
+const Mobile = () => {
++ const [value, setValue] = useState('');
++ const [err, setErr] = useState('');
+
++ function handleInputChange(e) {
++   setErr('');
++   setValue(e.target.value);
++ }
+
++ function handleInputBlur(e) {
++   if (value === '') {
++     setErr('');
++   } else if (!isMobile(value)) {
++     setErr('手机号码格式有误');
++   }
++ }
+
+  return (
+    <Form.Item
+      label='用户名'
+      name='username'
++     validateStatus={err ? 'error' : ''}
++     help={err}
+    >
+      <Input
+        placeholder='请输入手机号'
++       value={value}
++       onChange={handleInputChange}
++       onBlur={handleInputBlur}
+      />
+    </Form.Item>
+  );
+};
+
+export default Mobile;
+```
+
+#### 1.4.2 编写测试代码
+
+1. 引入测试库
+2. 新增测试用例
+   1. 渲染组件
+   2. 模拟用户操作
+   3. 断言操作后的结果
+3. 运行测试命令
+
+```diff
+// src/components/__tests__/Mobile.test.js
+
++ import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { Form } from 'antd';
+import Mobile from '../Mobile';
+
+Object.defineProperty(window, 'matchMedia', {
+  value: () => ({
+    addListener: () => {},
+    removeListener: () => {},
+  }),
+});
+
+describe('手机号输入框相关测试', () => {
+  test('组件渲染成功后,界面上要显示用户名及请输入手机号码', () => {
+    render(
+      <Form>
+        <Mobile></Mobile>
+      </Form>
+    );
+
+    expect(screen.getByText('用户名')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('请输入手机号')).toBeInTheDocument();
+  });
+});
+
++ describe.only('用户操作相关测试', () => {
++  test('输入错误的手机号码,界面上要显示手机号码格式有误', () => {
++    render(
++      <Form>
++        <Mobile></Mobile>
++      </Form>
++    );
+
++    const input = screen.getByPlaceholderText('请输入手机号');
++    fireEvent.change(input, { target: { value: '133' } });
++    fireEvent.blur(input);
+
++    expect(screen.getByText('手机号码格式有误')).toBeInTheDocument();
 +  });
 
-+  test('12345应该返回false', () => {
-+   expect(isPwd('12345')).toBeFalsy();
-+  })
-+ });
++  test('手机号码输错后,再重新输入手机号码,要清空错误信息', async () => {
++    render(
++      <Form>
++        <Mobile></Mobile>
++      </Form>
++    );
+
++    const input = screen.getByPlaceholderText('请输入手机号');
++    fireEvent.change(input, { target: { value: '133' } });
++    fireEvent.blur(input);
++
++    expect(screen.getByText('手机号码格式有误')).toBeInTheDocument();
+
++    fireEvent.change(input, { target: { value: '' } });
++    await waitFor(() => {
++      expect(screen.queryByText('手机号码格式有误')).not.toBeInTheDocument();
++    });
++  });
+});
 ```
 
-在终端发现运行结果出错
+#### 1.4.3 测试结果
 
 ```bash
- FAIL  src/utils/__test__/index.function.test.js
-  isMobile
-    ✓ 13333333333应该返回true
-    ✓ 1333333应该返回false
-  isPwd
-    ✕ 123456应该返回true
-    ✓ 123应该返回false (1 ms)
-
-  ● isPwd › 123456应该返回true
-
-    expect(received).toBeTruthy()
-
-    Received: false
-
-      14 | describe('isPwd', () => {
-      15 |      test('123456应该返回true', () => {
-    > 16 |              expect(isPwd(123456)).toBeTruthy();
-         |                                    ^
-      17 |      });
-      18 |
-      19 |      test('123应该返回false', () => {
-
-      at Object.<anonymous> (src/utils/__test__/index.function.test.js:16:25)
-
-Test Suites: 1 failed, 1 total
-Tests:       1 failed, 3 passed, 4 total
-Snapshots:   0 total
-Time:        0.176 s, estimated 1 s
-Ran all test suites.
+PASS  src/components/__tests__/Mobile.test.js
+  手机号输入框相关测试
+    ○ skipped 组件渲染成功后,界面上要显示用户名及请输入手机号码
+  用户操作相关测试
+    ✓ 输入错误的手机号码,界面上要显示手机号码格式有误 (76 ms)
+    ✓ 手机号码输错后,再重新输入手机号码,要清空错误信息 (33 ms)
 ```
 
-排查发现,是业务代码中.isPwd函数中的正则表达式引用错导致的.
+#### 1.4.4 试一试
 
-这样就可以提前发现和解决错误
+- 删除测试分组后面的`.isOnly`函数
+- 删除异步等待的包裹函数`await waitFor(() => ...`
 
-```diff
-// utils/index.js
+## 2. 集成测试
 
-export const isPwd = function (pwd) {
-- return REG_MOBILE.test(pwd);
-+ return REG_PWD.test(pwd);
+通常需要和外部库,其他依赖,用户操作一起进行测试
+
+### 2.1 测试接口
+
+对axios进行二次封装,接口请求失败或后端返回的状态码不是0,需要重新格式化返回的数据
+
+#### 2.1.1 编写业务代码
+
+屏蔽掉Promise的reject状态,通过express风格处理接口响应
+
+```javascript
+// src/api/index.js
+
+import axios from 'axios';
+
+/**
+ * 二次封装的请求函数
+ * @param {string} path - 接口路由
+ * @param {object} params - 请求参数
+ * @returns {Promise<([null, object] | [object | null])>}
+ */
+export const request = async function (path, params = {}) {
+  try {
+    const url = `test.com/${path}`;
+    const res = await axios.get(url, { params });
+
+    if (res?.ret !== 0) {
+      return [res, null];
+    }
+
+    return [null, res.data];
+  } catch (error) {
+    return [error, null];
+  }
+};
+
+export default request;
+```
+
+#### 2.1.2 编写测试代码
+
+1. 创建测试文件
+2. 新增测试用例
+   1. 模拟依赖包`jest.spyOn(axios, 'get')`
+   2. 模拟依赖包响应数据`spyGet.mockRejectedValue(...`
+   3. 运行异步函数
+   4. 断言运行结果
+3. 运行测试命令
+
+```javascript
+// src/api/__tests__/index.test.js
+
+import axios from 'axios';
+import request from '../index';
+
+const spyGet = jest.spyOn(axios, 'get');
+
+describe('公共请求库相关测试', () => {
+  test('如果http链接建立失败,测返回错误', async () => {
+    spyGet.mockRejectedValue(new Error('请求超时'));
+
+    const [err, res] = await request('login', {
+      name: '13355556666',
+      password: '123456',
+    });
+
+    expect(err).toEqual(new Error('请求超时'));
+    expect(res).toBe(null);
+  });
+
+  test('如果后端返回的状态码是1,则返回错误', async () => {
+    spyGet.mockResolvedValue({ ret: 1, data: {} });
+
+    const [err, res] = await request('login', {
+      name: '13355556666',
+      password: '123456',
+    });
+
+    expect(err).toEqual({ ret: 1, data: {} });
+    expect(res).toBeNull();
+  });
+
+  test('如果后端返回的状态码是0,则取后端返回的data数据', async () => {
+    spyGet.mockResolvedValue({ ret: 0, data: { token: 'token' } });
+
+    const [err, res] = await request('login', {
+      name: '13355556666',
+      password: '123456',
+    });
+
+    expect(err).toBe(null);
+    expect(res).toEqual({ token: 'token' });
+  });
+});
+
+```
+
+#### 2.1.3 测试结果
+
+```bash
+PASS  src/api/__tests__/index.test.js
+  公共请求库相关测试
+    ✓ 如果http链接建立失败,测返回错误 (4 ms)
+    ✓ 如果后端返回的状态码是1,则返回错误 (2 ms)
+    ✓ 如果后端返回的状态码是0,则取后端返回的data数据 (2 ms)
+```
+
+#### 2.1.4 试一试
+
+- 删除模拟响应结果`spyGet.mockResolvedValue({ ret: 1, data: {} })`
+- 将最后一个断言的验证函数`toEqual({ token: 'token' })`修改成`toBe({ token: 'token' })`
+
+### 2.2 测试路由跳转
+
+路由是使用的`react-router`,在测试路由跳转时,必须结合react-router一起进行测试
+
+#### 2.2.1 编写业务代码
+
+1. 新增路入口文件
+2. 在登录页面添加一个跳转链接
+
+```javascript
+// src/App.js
+
+import { Routes, Route } from 'react-router-dom';
+import { Login } from './Login';
+
+export const App = () => {
+ return <Routes>
+  <Route path='/login' element={<Login />} />
+  <Route path='/forgot' element='忘记密码页面' />
+ </Routes>
+}
+
+export default App
+```
+
+```javascript
+// src/Login.js
+
+import sensors from 'sa-sdk-javascript'
+import { Link } from "react-router-dom";
+import { Form } from 'antd';
+import Mobile from './components/Mobile';
+
+export function Login() {
+  return (
+    <Form>
+      <Mobile />
+      <Link to="/forgot" onClick={() => sensors.track('forgot')}>忘记密码?</Link>
+    </Form>
+  );
 }
 ```
 
-修改保存之后,测试用例自动重新运行.
+#### 2.2.2 编写测试代码
 
-```bash
- PASS  src/utils/__test__/index.function.test.js
-  isMobile
-    ✓ 13333333333应该返回true (2 ms)
-    ✓ 1333333应该返回false (1 ms)
-  isPwd
-    ✓ 123456应该返回true (1 ms)
-    ✓ 123应该返回false (1 ms)
+1. 创建测试文件
+2. 新增测试用例
+   1. 引入相关依赖
+   2. 模拟全局变量
+   3. 模拟依赖包
+   4. 渲染`被包裹起来`的组件
+   5. 模拟用户操作
+   6. 断言操作结果
+3. 运行测试命令
 
-Test Suites: 1 passed, 1 total
-Tests:       4 passed, 4 total
-Snapshots:   0 total
-Time:        0.256 s, estimated 1 s
-Ran all test suites.
+```javascript
+// src/__tests__/Login.test.jsx
 
-Watch Usage: Press w to show more.
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import '@testing-library/jest-dom';
+import App from '../App'
+
+const mockTrack = jest.fn()
+jest.mock('sa-sdk-javascript', () => ({
+ track: (...params) => mockTrack(...params)
+}))
+
+Object.defineProperty(window, 'matchMedia', {
+ value: () => ({
+  addListener: () => { },
+  removeListener: () => { },
+ }),
+});
+
+describe('忘记密码相关测试', () => {
+ test('点击忘记密码,要上报forgot神策事件', () => {
+  render(<MemoryRouter initialEntries={['/login']}>
+    <App />
+  </MemoryRouter>)
+
+  fireEvent.click(screen.getByText('忘记密码?'))
+
+  expect(mockTrack).toBeCalledTimes(1)
+  expect(mockTrack).toHaveBeenCalledWith('forgot');
+ });
+
+ test('点击忘记密码,要跳转到忘记密码页面', () => {
+  render(<MemoryRouter initialEntries={['/login']}>
+    <App />
+  </MemoryRouter>)
+
+  fireEvent.click(screen.getByText('忘记密码?'))
+
+  expect(screen.getByText('忘记密码页面')).toBeInTheDocument()
+ });
+});
 ```
 
-### 测试快照
+#### 2.2.3 测试结果
 
-针对正则的常量,我们可以保存一个快照.
+```bash
+PASS  src/__tests__/Login.test.jsx
+  忘记相关测试
+    ✓ 点击忘记密码,要上报forgot神策事件 (78 ms)
+    ✓ 点击忘记密码,要跳转到忘记密码页面 (18 ms)
+```
 
-当修改常量时,会进行提示,以避免不小心被修改错了
+#### 2.2.4 试一试
+
+- 删除神策模拟`jest.mock('sa-sdk-javascript'...`
+- 删除包裹层`<MemoryRouter...`
+
+### 2.3 测试自动登录
+
+需要结合localStorage,context和react-router一起进行验证
+
+#### 2.3.1 编写业务代码
+
+1. 新增一个context维护token
+2. 新增个人中心页面路由
+3. 登录页面引入对context的依赖
+4. 将Mobile组件的状态管理通过props传递
+
+```javascript
+// src/context/Token.jsx
+
+import React, { useState } from 'react'
+import { useEffect } from 'react'
+
+export const TokenContext = React.createContext('')
+
+export const Token = ({ children }) => {
+ const [ token, setToken ] = useState('')
+
+ const storageToken = (mobile) => {
+  localStorage.setItem('token', mobile)
+  setToken(mobile)
+ }
+
+ useEffect(() => {
+  setToken(localStorage.getItem('token') || '')
+ }, [setToken])
+
+ return <TokenContext.Provider value={{ token, storageToken }}>
+  {children}
+ </TokenContext.Provider>
+}
+```
 
 ```diff
-// utils/__test__/index.function.test.js
+// src/App.js
 
-- import {isMobile, isPwd } from '..';
-+ import {isMobile, isPwd, REG_MOBILE, REG_PWD } from '..';
+import { Routes, Route } from 'react-router-dom';
++ import { Token } from './context/Token';
+import { Login } from './Login';
 
-+ describe('snapshot', () => {
-+  test('手机号码的正则表达式', () => {
-+   expect(REG_MOBILE).toMatchSnapshot();
-+  })
+export const App = () => {
+ return (
++  <Token>
+   <Routes>
++    <Route path='/profile' element="个人中心页面" />
+    <Route path='/login' element={<Login />} />
+    <Route path='/forgot' element="忘记密码页面" />
+   </Routes>
++  </Token>)
+}
 
-+  test('密码的正则表达式', () => {
-+   expect(REG_PWD).toMatchSnapshot();
-+  })
-+ })
+export default App
 ```
-
-保存之后 ,测试用例会自动运行通过
-
-`toMatchSnapshot`函数会在测试文件所在目录下自动创建\__snapshots__/测试文件名.snap的文件
-
-用于缓存当前正则的值
-
-```bash
- PASS  src/utils/__test__/index.function.test.js
-  isMobile
-    ✓ 13333333333应该返回true
-    ✓ 1333333应该返回false (1 ms)
-  isPwd
-    ✓ 123456应该返回true
-    ✓ 123应该返回false
-  snapshot
-    ✓ 手机号码的正则表达式 (2 ms)
-    ✓ 密码的正则表达式 (1 ms)
-
- › 2 snapshots written.
-Snapshot Summary
- › 2 snapshots written from 1 test suite.
-
-Test Suites: 1 passed, 1 total
-Tests:       6 passed, 6 total
-Snapshots:   2 written, 2 total
-Time:        0.391 s, estimated 1 s
-Ran all test suites.
-
-Watch Usage: Press w to show more.
-```
-
-当你更新手机号的正则时,jest就会报错,因为之前缓存的和你改的结果不一样
 
 ```diff
-// utils/index.js
+// src/Login.js
 
-- const REG_MOBILE = /1\d{10,10}/;
-+ export const REG_MOBILE = /1[3-8]\d{9,9}/;
++ import { useContext, useEffect, useState } from 'react';
+import sensors from 'sa-sdk-javascript'
++ import { Link, useNavigate } from "react-router-dom";
++ import { Form, Button } from 'antd';
+import Mobile from './components/Mobile';
++ import { TokenContext } from './context/Token';
+
+export function Login() {
++  const [mobile, setMobile] = useState('');
++  const { token, storageToken } = useContext(TokenContext)
++  const navigate = useNavigate()
+
++  useEffect(() => {
++    token && navigate('/profile')
++  }, [token, navigate])
+
+  return (
+    <Form>
++      <Mobile value={mobile} setValue={setMobile}/>
+      <Link to="/forgot" onClick={() => sensors.track('forgot')}>忘记密码?</Link>
++      <Button disabled={!mobile} onClick={() => storageToken(mobile)}>登录</Button>
+    </Form>
+  );
+}
 ```
+
+```diff
+// src/components/Mobile.js
+
+const Mobile = ({ value, setValue }) => {
+- const [value, setValue] = useState('');
++ const [err, setErr] = useState('');
+```
+
+#### 2.3.2 编写测试代码
+
+1. 模拟全局变量
+2. 模拟用户操作
+3. 断言操作结果
+
+```javascript
+// src/__tests__/Login2.test.jsx
+
+import { fireEvent, render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router';
+import '@testing-library/jest-dom';
+import App from '../App'
+
+Object.defineProperty(window, 'matchMedia', {
+ value: () => ({
+  addListener: () => { },
+  removeListener: () => { },
+ }),
+});
+
+const mockGetItem = jest.fn()
+const mockSetItem = jest.fn()
+Object.defineProperty(window, 'localStorage', {
+ value: {
+  getItem: () => mockGetItem(),
+  setItem: (...params) => mockSetItem(...params),
+ },
+});
+
+describe('自动登录相关测试', () => {
+ test('如果storage中没有token,则停留在登录页面', () => {
+  mockGetItem.mockReturnValueOnce(undefined)
+  render(<MemoryRouter initialEntries={['/login']}>
+   <App />
+  </MemoryRouter>)
+
+  expect(screen.getByText(/忘记密码/)).toBeInTheDocument();
+ });
+
+ test('点击登录按钮,要把token缓存到storage中,然后跳转个人中心页面', () => {
+  mockGetItem.mockReturnValueOnce(undefined)
+  render(<MemoryRouter initialEntries={['/login']}>
+   <App />
+  </MemoryRouter>)
+
+  expect(screen.getByRole('button')).toHaveAttribute('disabled')
+
+  fireEvent.input(screen.getByPlaceholderText('请输入手机号'), { target: { value: '13883198388' } })
+  fireEvent.change(screen.getByPlaceholderText('请输入手机号'))
+  expect(screen.getByRole('button')).not.toHaveAttribute('disabled')
+
+  fireEvent.click(screen.getByRole('button'))
+  expect(mockSetItem).toHaveBeenCalledWith('token', '13883198388');
+  expect(screen.getByText('个人中心页面')).toBeInTheDocument();
+ });
+
+ test('如果storage中有token,则直接跳转个人中心页面', () => {
+  mockGetItem.mockReturnValueOnce('13883198388')
+  render(<MemoryRouter initialEntries={['/login']}>
+   <App />
+  </MemoryRouter>)
+
+  expect(screen.getByText('个人中心页面')).toBeInTheDocument();
+ });
+});
+```
+
+#### 2.3.3 运行测试命令
 
 ```bash
- FAIL  src/utils/__test__/index.function.test.js
-  isMobile
-    ✓ 13333333333应该返回true (2 ms)
-    ✓ 1333333应该返回false (1 ms)
-  isPwd
-    ✓ 123456应该返回true
-    ✓ 123应该返回false
-  snapshot
-    ✕ 手机号码的正则表达式 (4 ms)
-    ✓ 密码的正则表达式
-
-  ● snapshot › 手机号码的正则表达式
-
-    expect(received).toMatchSnapshot()
-
-    Snapshot name: `snapshot 手机号码的正则表达式 1`
-
-    Snapshot: /1\\d\{10,10\}/
-    Received: /1\[3-8\]\\d\{9,9\}/
-
-      24 | describe('snapshot', () => {
-      25 |      test('手机号码的正则表达式', () => {
-    > 26 |              expect(REG_MOBILE).toMatchSnapshot();
-         |                                 ^
-      27 |      })
-      28 |
-      29 |      test('密码的正则表达式', () => {
-
-      at Object.<anonymous> (src/utils/__test__/index.function.test.js:26:22)
-
- › 1 snapshot failed.
-Snapshot Summary
- › 1 snapshot failed from 1 test suite. Inspect your code changes or press `u` to update them.
-
-Test Suites: 1 failed, 1 total
-Tests:       1 failed, 5 passed, 6 total
-Snapshots:   1 failed, 1 passed, 2 total
-Time:        0.28 s, estimated 1 s
-Ran all test suites.
+PASS  src/__tests__/Login2.test.jsx
+  自动登录相关测试
+    ✓ 如果storage中没有token,则停留在登录页面 (71 ms)
+    ✓ 点击登录按钮,要把token缓存到storage中,然后跳转个人中心页面 (131 ms)
+    ✓ 如果storage中有token,则直接跳转个人中心页面 (17 ms)
 ```
 
-这个时候,只需要在终端按一下`u`键(更新)即可将最新的值同步到snap文件中
+#### 2.3.4 试一试
 
-如果发现自己是不小心改到.或者改错了,就可以撤消刚刚的改动,避免引起新的bug.
+- 将模拟全局变量中的`getItem: () => mockGetItem...`修改成`getItem: mockGetItem`
 
-### 测试组件
-
-### 测试接口
-
-## 集成测试
-
-### 测试路由跳转
-
-### 测试用户交互
-
-### 测试登录逻辑
-
-## 端到端测试
-
-### 模拟用户操作
+## 3. 端到端测试

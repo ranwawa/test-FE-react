@@ -1,10 +1,14 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Login from './Login';
+import { BrowserRouter } from 'react-router-dom';
+import 'antd/dist/antd.css';
+import App from './App'
 
 ReactDOM.render(
   <React.StrictMode>
-    <Login />
+    <BrowserRouter>
+      <App></App>
+    </BrowserRouter>
   </React.StrictMode>,
   document.getElementById('root')
 );
