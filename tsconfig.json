@@ -7,6 +7,8 @@
     "paths": {
       "@/*": ["src/*"]
     },
+    "jsx": "preserve",
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
-  }
+  },
+  "include": ["**/*.js", "**/*.ts", "**/*.jsx", "*.tsx", "**/*.vue"]
 }
